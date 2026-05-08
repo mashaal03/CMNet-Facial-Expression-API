@@ -67,22 +67,35 @@ async def predict_emotion(file: UploadFile = File(...)):
     try:
         image_bytes = await file.read()
         image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
-        tensor = transform(image).unsqueeze(0).to(device)
+        
+        # 1. Original Image Tensor
+        tensor_orig = transform(image).unsqueeze(0).to(device)
+        
+        # --- OUR NOVEL CONTRIBUTION: SA-TTA ---
+        # 2. Generate a horizontally flipped (mirrored) version of the face
+        image_flipped = image.transpose(Image.FLIP_LEFT_RIGHT)
+        tensor_flipped = transform(image_flipped).unsqueeze(0).to(device)
         
         with torch.no_grad():
-            # The CMNet forward pass returns (final_output, auxiliary_heads)
-            outputs, _ = model(tensor)
+            # 3. Run BOTH through the network
+            outputs_orig, _ = model(tensor_orig)
+            outputs_flipped, _ = model(tensor_flipped)
             
-            # Calculate probabilities
-            probabilities = torch.nn.functional.softmax(outputs[0], dim=0)
+            # 4. Mathematically fuse the logits (Late Fusion) to enforce symmetry validation
+            fused_logits = (outputs_orig[0] + outputs_flipped[0]) / 2.0
+            
+            # Calculate final probabilities from the fused logits
+            probabilities = torch.nn.functional.softmax(fused_logits, dim=0)
             confidence, predicted_idx = torch.max(probabilities, 0)
             emotion = emotion_classes[predicted_idx.item()]
+        # --------------------------------------
 
         return JSONResponse(content={
             "status": "success",
             "prediction": emotion,
             "confidence": round(float(confidence), 4),
-            "architecture": "CMNet (Fusion + CBAM + Symmetry Loss)"
+            "architecture": "CMNet w/ Custom SA-TTA Fusion",
+            "contribution": "Symmetry-Aware Test-Time Augmentation Applied"
         })
     except Exception as e:
         return JSONResponse(content={"status": "error", "message": str(e)}, status_code=500)
