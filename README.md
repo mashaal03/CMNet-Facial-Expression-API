@@ -5,12 +5,17 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-00a393.svg)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)
 
+## 📄 Academic Documentation
+* **[Final Project Report](CV_Final_Report.pdf)**: Comprehensive analysis of the architecture, ablation studies, and deployment methodology.
+* **[Project Proposal](CV_Proposal.pdf)**: Initial problem statement, proposed methodology, and experimental setup.
+
 ## 📌 Abstract
 Automated Facial Expression Recognition (FER) frequently suffers from background noise and partial occlusion when relying on standard global-feature Convolutional Neural Networks (CNNs). This repository contains the production deployment and algorithmic optimization of the **Cross-Modal Network (CMNet)**. 
 
 By enforcing biological facial symmetry constraints, engineering a novel Multi-Scale Test-Time Augmentation (MS-TTA) algorithm, and deploying the model within a highly optimized, stateless Docker container via FastAPI, we achieve real-time, robust emotion classification suitable for production environments.
 
 ![Teaser Figure: FastAPI Swagger UI](api_screenshot.png) 
+
 ## ✨ Key Engineering Features
 1. **Multi-Scale SA-TTA Inference:** A custom late-fusion inference pipeline that dynamically evaluates geometrically mirrored and scaled variants of the input tensor to neutralize unilateral spatial bias.
 2. **Label Distribution Learning (LDL):** Replaces rigid Cross-Entropy with an algorithmic KL-Divergence loss, mapping emotions to a fluid biological spectrum.
@@ -51,34 +56,6 @@ To satisfy modern MLOps production standards, the inference engine is fully cont
 ### 1. Build the Docker Image
 Clone the repository and build the container. This will download the necessary Python 3.10 environment and install all dependencies securely.
 ```bash
-git clone https://github.com/mashaal03/CMNet-Facial-Expression-API.git
+git clone [https://github.com/mashaal03/CMNet-Facial-Expression-API.git](https://github.com/mashaal03/CMNet-Facial-Expression-API.git)
 cd CMNet-Facial-Expression-API
 docker build -t cmnet-api .
-
-2. Run the Container
-Spin up the FastAPI server on port 8000.
-
-Bash
-docker run -p 8000:8000 cmnet-api
-3. Access the API
-Once running, the API is available locally. You can interact with it in two ways:
-
-Interactive UI (Swagger): Open your browser and navigate to http://localhost:8000/docs to upload images and test the model visually.
-
-cURL Request:
-
-Bash
-curl -X 'POST' \
-  'http://localhost:8000/predict' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: multipart/form-data' \
-  -F 'file=@test_image.jpg'
-📜 Academic Integrity & License
-This project was developed for CSE 429: Computer Vision and Pattern Recognition. The core multi-head network definitions and pre-trained backbones are adapted from the original CMNet authors. The MS-TTA algorithm, API deployment, security patches, and structural analyses are original contributions.
-
-
-Once you have saved this, use the same clean Git workflow to push it up to your repository:
-```bash
-git add README.md
-git commit -m "docs: update README with MS-TTA architecture and complete Docker instructions"
-git push origin main
