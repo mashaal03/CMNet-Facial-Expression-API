@@ -10,8 +10,7 @@ Automated Facial Expression Recognition (FER) frequently suffers from background
 
 By enforcing biological facial symmetry constraints, engineering a novel Multi-Scale Test-Time Augmentation (MS-TTA) algorithm, and deploying the model within a highly optimized, stateless Docker container via FastAPI, we achieve real-time, robust emotion classification suitable for production environments.
 
-![Teaser Figure: FastAPI Swagger UI](docs/api_screenshot.png) *(Note: Upload your screenshot to a `docs/` folder and link it here)*
-
+![Teaser Figure: FastAPI Swagger UI](api_screenshot.png) 
 ## ✨ Key Engineering Features
 1. **Multi-Scale SA-TTA Inference:** A custom late-fusion inference pipeline that dynamically evaluates geometrically mirrored and scaled variants of the input tensor to neutralize unilateral spatial bias.
 2. **Label Distribution Learning (LDL):** Replaces rigid Cross-Entropy with an algorithmic KL-Divergence loss, mapping emotions to a fluid biological spectrum.
