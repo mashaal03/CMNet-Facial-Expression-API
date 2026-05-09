@@ -48,6 +48,7 @@ The model was evaluated using the official test split of the **RAF-DB** dataset 
 ## 🚀 Deployment Strategy & Quick Start
 
 To satisfy modern MLOps production standards, the inference engine is fully containerized. It bypasses local environment dependency conflicts by utilizing a stateless Linux container.
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Watch_Video-FF0000?style=for-the-badge&logo=googledrive&logoColor=white)](https://drive.google.com/drive/folders/1cSXqcfSpEDKIbiPvorGnx69iB3M9YtJ-?usp=drive_link)
 
 ### Prerequisites
 * Docker Desktop installed and running.
