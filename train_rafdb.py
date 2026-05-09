@@ -90,11 +90,11 @@ def main():
     criterion_cls = AlgorithmicLDLLoss(device=device)
     # ---------------------------------------------------------------------
     
-    criterion_pt = PartitionLoss()      # 最大化注意力方差
+    criterion_pt = PartitionLoss()      # Maximize attention variance
     optimizer=torch.optim.SGD(model.parameters(),lr,momentum= momentum,weight_decay= weight_decay)
     scheduler=torch.optim.lr_scheduler.StepLR(optimizer,step_size= ls,gamma=0.1)
     recorder = RecorderMeter( epochs)
-    cudnn.benchmark=True        #加速网络
+    cudnn.benchmark=True        #Accelerate the network
 
     train_dataset = datasets.ImageFolder(
         traindir,
@@ -126,7 +126,7 @@ def main():
         train_dataset,
         batch_size= batch_size,
         shuffle=True,
-        num_workers= workers,       #数据加载器数量，不可小于batchsize
+        num_workers= workers,       #Number of data loaders must not be less than batchsize
         pin_memory=True
     )
  
@@ -148,12 +148,12 @@ def main():
         with open(txt_name, 'a') as f:
             f.write('Current learning rate: ' + str(current_learning_rate) + '\n')
 
-        train_acc,train_los=train(train_loader,model,criterion_cls,criterion_pt,optimizer,epoch+1)       #返回一个训练epoch平均精度和损失
-        val_acc,val_los=validate(val_loader,model,criterion_cls,criterion_pt)        #返回一个验证epoch平均精度和损失
+        train_acc,train_los=train(train_loader,model,criterion_cls,criterion_pt,optimizer,epoch+1)      # Returns the average precision and loss for one training epoch.
+        val_acc,val_los=validate(val_loader,model,criterion_cls,criterion_pt)        # Returns a validation epoch average precision and loss.
         scheduler.step()
 
-        recorder.update(epoch,train_los,train_acc,val_los,val_acc)      #一个epoch记录精度和损失
-        recorder.plot_curve(curve_name)      #绘制图形
+        recorder.update(epoch,train_los,train_acc,val_los,val_acc)      # Record precision and loss over one epoch
+        recorder.plot_curve(curve_name)     #draw graphics
 
         is_best=val_acc>best_acc
         best_acc=max(best_acc,val_acc)
@@ -161,7 +161,7 @@ def main():
         tqdm.write('Current best accuracy: '+str(best_acc.item()))
 
         with open(txt_name, 'a') as f:
-            f.write('********************Current best accuracy: ' + str(best_acc.item()) + '\n')        #记录验证最高精度
+            f.write('********************Current best accuracy: ' + str(best_acc.item()) + '\n')        #Record verification of the highest accuracy
 
         save_checkpoint({'epoch': epoch + 1,
                          'state_dict': model.state_dict(),
@@ -172,7 +172,7 @@ def main():
         end_time = time.time()
         epoch_time = end_time - start_time
         tqdm.write("An Epoch Time: "+ str(epoch_time))
-        with open(txt_name, 'a') as f:      #写入一个epoch时间
+        with open(txt_name, 'a') as f:      # Write an epoch time
             f.write('An epoch time: '+str(epoch_time) + '\n')
 
 
@@ -180,7 +180,7 @@ def main():
 def train(train_loader,model,criterion_cls,criterion_pt,optimizer,epoch):
     losses = AverageMeter('Loss', ':.4f')
     top1 = AverageMeter('Accuracy', ':6.3f')
-    progress = ProgressMeter(len(train_loader),     #传入多少个batch，损失和精度
+    progress = ProgressMeter(len(train_loader),     # Number of batches passed in, loss and accuracy
                              [losses, top1],
                              prefix="Epoch: [{}]".format(epoch))
 
@@ -193,17 +193,17 @@ def train(train_loader,model,criterion_cls,criterion_pt,optimizer,epoch):
 
         loss = alpha*criterion_cls(out,targets) +  (1-alpha)*criterion_pt(heads)   #89.3 89.4
         acc=accuracy(out,targets)
-        losses.update(loss.item(),images.size(0))       #传入一个batch平均损失，batch_size，计算平均值
-        top1.update(acc.item(),images.size(0))        #传入一个batch平均精度，batch_size，计算平均值
+        losses.update(loss.item(),images.size(0))       # Pass in a batch average loss and batch_size, and calculate the average.
+        top1.update(acc.item(),images.size(0))        # Pass in a batch average precision and batch_size, and calculate the average.
 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-        if i% print_freq==0:        #显示训练精度和损失
+        if i% print_freq==0:       # Display training accuracy and loss
             progress.display(i)
     
-    return top1.avg, losses.avg     #返回一个epoch平均精度和损失
+    return top1.avg, losses.avg     # Returns the average precision and loss over one epoch.
 
     # 验证
 def validate(val_loader,model,criterion_cls,criterion_pt):
@@ -223,24 +223,24 @@ def validate(val_loader,model,criterion_cls,criterion_pt):
             loss = criterion_cls(out,targets) + criterion_pt(heads)
 
             acc=accuracy(out,targets)
-            losses.update(loss.item(),images.size(0))       #传入一个batch平均损失，batch_size，计算平均值
-            top1.update(acc,images.size(0))        #传入一个batch平均精度，batch_size，计算平均值
+            losses.update(loss.item(),images.size(0))       # Pass in a batch average loss and batch_size, and calculate the average.
+            top1.update(acc,images.size(0))        # Pass in a batch average precision and batch_size, and calculate the average.
 
             if i %  print_freq == 0:
                 progress.display(i)
         tqdm.write(' **** Accuracy {top1.avg:.3f} *** '.format(top1=top1))
         with open(txt_name, 'a') as f:
-            f.write(' * Accuracy {top1.avg:.3f}'.format(top1=top1) + '\n')      #写入验证平均精度
+            f.write(' * Accuracy {top1.avg:.3f}'.format(top1=top1) + '\n')     #Write verification average precision
 
     return top1.avg,losses.avg
             
-    #保存模型
+   #Save model
 def save_checkpoint(state, is_best):
-    torch.save(state,  checkpoint_path)     #保存模型
-    if is_best:     #若是最高精度，保存至最高精度模型
+    torch.save(state,  checkpoint_path)     #Save model
+    if is_best:     #If using the highest precision, save to the highest precision model.
         shutil.copyfile( checkpoint_path,  best_checkpoint_path)
 
-    #计算均值
+    #Calculate mean
 class AverageMeter(object):     
     """Computes and stores the average and current value"""
     def __init__(self, name, fmt=':f'):
@@ -264,10 +264,10 @@ class AverageMeter(object):
         fmtstr = '{name} {val' + self.fmt + '} ({avg' + self.fmt + '})'
         return fmtstr.format(**self.__dict__)
 
-    #显示进度
+   #show progress
 class ProgressMeter(object):
     def __init__(self, num_batches, meters, prefix=""):
-        self.batch_fmtstr = self._get_batch_fmtstr(num_batches)     #获取格式
+        self.batch_fmtstr = self._get_batch_fmtstr(num_batches)     #Get format
         self.meters = meters
         self.prefix = prefix
 
@@ -276,7 +276,7 @@ class ProgressMeter(object):
         entries += [str(meter) for meter in self.meters]
         print_txt = '\t'.join(entries)
         tqdm.write(print_txt)
-        with open(txt_name, 'a') as f:      #写入格式
+        with open(txt_name, 'a') as f:      #Write format
             f.write(print_txt + '\n')
 
     def _get_batch_fmtstr(self, num_batches):
@@ -284,7 +284,7 @@ class ProgressMeter(object):
         fmt = '{:' + str(num_digits) + 'd}'
         return '[' + fmt + '/' + fmt.format(num_batches) + ']'
 
-    #返回一个batch精度
+    # Returns a batch precision
 def accuracy(logits,labels):
     acc=(logits.argmax(dim=-1)==labels).float().mean()
     return acc*100.0
@@ -367,30 +367,30 @@ class DrawConfusionMatrix:
 
     def getMatrix(self,normalize=True):
         if normalize:
-            per_sum = self.matrix.sum(axis=1)  # 计算每行的和，用于百分比计算
+            per_sum = self.matrix.sum(axis=1)  # Calculate the sum of each row for percentage calculations.
             for i in range(self.num_classes):
-                self.matrix[i] =(self.matrix[i] / per_sum[i])   # 百分比转换
-            self.matrix=np.around(self.matrix*100, 2)   # 保留2位小数点
+                self.matrix[i] =(self.matrix[i] / per_sum[i])   # Percent conversion
+            self.matrix=np.around(self.matrix*100, 2)  # Keep 2 decimal places
 
-            self.matrix[np.isnan(self.matrix)] = 0  # 可能存在NaN，将其设为0
+            self.matrix[np.isnan(self.matrix)] = 0  # NaN may exist, set it to 0
         return self.matrix
 
     def drawMatrix(self):
         self.matrix = self.getMatrix(self.normalize)
-        plt.imshow(self.matrix, cmap=plt.cm.Blues)  # 仅画出颜色格子，没有值
+        plt.imshow(self.matrix, cmap=plt.cm.Blues)  # Only draw the colored squares, no values.
         plt.xlabel("Predict label")
         plt.ylabel("Truth label")
-        plt.yticks(range(self.num_classes), self.labels_name)  # y轴标签
-        plt.xticks(range(self.num_classes), self.labels_name, rotation=45)  # x轴标签
+        plt.yticks(range(self.num_classes), self.labels_name)  # y-axis labels
+        plt.xticks(range(self.num_classes), self.labels_name, rotation=45)  # x-axis labels
 
         for x in range(self.num_classes):
             for y in range(self.num_classes):
-                value = float(format('%.2f' % self.matrix[y, x]))  # 数值处理
-                plt.text(x, y, value, verticalalignment='center', horizontalalignment='center')  # 写值
+                value = float(format('%.2f' % self.matrix[y, x]))  # Numerical processing
+                plt.text(x, y, value, verticalalignment='center', horizontalalignment='center')  # Write value
 
-        plt.tight_layout()  # 自动调整子图参数，使之填充整个图像区域
+        plt.tight_layout()  # Automatically adjust sub-image parameters to fill the entire image area.
 
-        plt.savefig('experiment/visual/confusion_matrix/'+self.path+'.png', bbox_inches='tight')  # bbox_inches='tight'可确保标签信息显示全
+        plt.savefig('experiment/visual/confusion_matrix/'+self.path+'.png', bbox_inches='tight')  # bbox_inches='tight' ensures that all tag information is displayed.
         plt.show()
 
 if __name__ == '__main__':
